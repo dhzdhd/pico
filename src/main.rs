@@ -1,6 +1,6 @@
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent},
-    execute, style,
+    execute,
     terminal::{self, ClearType},
     Result,
 };
@@ -19,9 +19,17 @@ fn main() -> Result<()> {
     terminal::enable_raw_mode()?;
 
     loop {
-        match read_char()? {
-            'q' => break,
-            x => execute!(stdout, style::Print(x))?,
+        let event = get_event()?;
+        match event {
+            KeyEvent {
+                code: KeyCode::Char('q'),
+                ..
+            } => break,
+            KeyEvent {
+                code: KeyCode::Char(x),
+                ..
+            } => println!("{}", x),
+            _ => {}
         }
     }
 
@@ -36,14 +44,10 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-pub fn read_char() -> Result<char> {
+pub fn get_event() -> Result<KeyEvent> {
     loop {
-        if let Ok(Event::Key(KeyEvent {
-            code: KeyCode::Char(c),
-            ..
-        })) = event::read()
-        {
-            return Ok(c);
+        if let Ok(Event::Key(event)) = event::read() {
+            return Ok(event);
         }
     }
 }
